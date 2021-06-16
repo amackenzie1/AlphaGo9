@@ -294,4 +294,4 @@ if "baby_alphazero" not in os.listdir():
 
 
 model.load_weights("baby_alphazero/v1")
-play_vs_human(200)
+play_vs_human(400)
