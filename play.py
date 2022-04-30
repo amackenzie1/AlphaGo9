@@ -27,6 +27,13 @@ def evaluate(board):
     val, probs = model(np.array([board.to_array()]))
     return val.numpy()[0][0], np.squeeze(probs)
 
+def evaluate(board):
+    if board.is_done():
+        return board.score(), Softmax()(np.array([0]*82, dtype='float32'))
+
+    val, probs = model(np.array([board.to_array()]))
+    return val.numpy()[0][0], np.squeeze(probs)
+
 
 class Node:
     def __init__(self, board, move, prob, parent=None, root=False, turn=1, done=False):
@@ -73,15 +80,16 @@ class MonteCarloSearchTree:
         self.num_moves = 0
     
         
-    def get_move(self):
-        distribution = [0 if i not in self.root.children.keys() else self.root.children[i].N for i in range(82)]
-        for i in range(82):
+    def get_move(self, end=82):
+        distribution = [0 if i not in self.root.children.keys() else self.root.children[i].N for i in range(end)]
+        for i in range(end):
             distribution[i] = distribution[i]**(1/self.tau)
         normalization = sum(distribution)
-        for i in range(82):
+        for i in range(end):
             distribution[i] = distribution[i]/normalization
         self.policy = [round(i, 5) for i in distribution] 
-        move = np.random.choice(a=82, p=distribution)
+        # print(distribution)
+        move = np.random.choice(a=end, p=distribution)
         return move
     
     def search_once(self, node):
@@ -266,13 +274,14 @@ def from_letters(move):
     return (row-1) * 9 + column
 
 def play_vs_human(depth):
+    print("\nEnter your moves as you would in Battleships: for example, b7 is a valid move. To pass, write 'pass'.")
     mcts = MonteCarloSearchTree(0.01)
     x = 2
     while x == 2:
         mcts.search(depth)
         model_move = mcts.get_move()
-        mcts.info()
-        #plot_probs([0 if i not in mcts.root.children.keys() else mcts.root.children[i].P for i in range(82)])
+        # mcts.info()
+        # plot_probs([0 if i not in mcts.root.children.keys() else mcts.root.children[i].P for i in range(82)])
         x = mcts.advance_root(model_move)
         mcts.root.board.display()
 
@@ -288,10 +297,25 @@ def play_vs_human(depth):
     return -1
 
 
+
 if "baby_alphazero" not in os.listdir():
     model.build(input_shape=(9, 9, 7))
     model.save_weights("baby_alphazero/v1")
 
-
 model.load_weights("baby_alphazero/v1")
-play_vs_human(400)
+
+def server_play(depth, human_move,tree=None):
+    if tree== None:
+        mcts = MonteCarloSearchTree(0.01)
+    else:
+        mcts = tree
+    mcts.advance_root(human_move)
+    mcts.search(depth)
+    model_move = mcts.get_move(end=(82 if tree else 81))
+    mcts.advance_root(model_move)
+    mcts.root.board.display()
+    return model_move, lambda x, y: server_play(x, y, tree=mcts)
+
+function = server_play
+if __name__ == "__main__":
+    play_vs_human(20)
