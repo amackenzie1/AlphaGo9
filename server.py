@@ -9,7 +9,7 @@ function = server_play
 @app.route("/move/<number>")
 def hello_world(number):
     global function 
-    result, function = function(2, int(number))
+    result, function = function(10, int(number))
     print(result)
     response = flask.jsonify({'x': result//9, "y": result%9}) 
     response.headers.add('Access-Control-Allow-Origin', '*')
