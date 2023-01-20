@@ -7,7 +7,7 @@ from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Conv2D, Dense, MaxPool2D, Flatten, Softmax, ZeroPadding2D, BatchNormalization, Activation
 from tensorflow.keras.losses import CategoricalCrossentropy 
 from tensorflow.keras.regularizers import l1
-from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.optimizers.legacy import Adam
 from model_definition import get_model 
 import time 
 import pickle 
@@ -318,4 +318,4 @@ def server_play(depth, human_move,tree=None):
 
 function = server_play
 if __name__ == "__main__":
-    play_vs_human(20)
+    play_vs_human(200)
