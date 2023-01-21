@@ -316,6 +316,16 @@ def server_play(depth, human_move,tree=None):
     mcts.root.board.display()
     return model_move, lambda x, y: server_play(x, y, tree=mcts)
 
+def stateless_server_play(depth, moves):
+    mcts = MonteCarloSearchTree(0.01)
+    for i in moves:
+        mcts.advance_root(i)
+    mcts.search(depth)
+    model_move = mcts.get_move(end=(82 if len(moves) > 60 else 81))
+    mcts.advance_root(model_move)
+    mcts.root.board.display()
+    return model_move
+
 function = server_play
 if __name__ == "__main__":
     play_vs_human(200)
